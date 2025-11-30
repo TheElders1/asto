@@ -1,4 +1,3 @@
-# netlify.toml (root of project)
 [build]
-  functions = "netlify/functions"
-  publish   = "public"
+  functions = "functions"
+  publish = "public"
