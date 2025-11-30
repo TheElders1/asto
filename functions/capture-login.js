@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const botToken = process.env.BOT_TOKEN;
 const chatId = process.env.CHAT_ID;
 
@@ -45,7 +45,16 @@ exports.handler = async function(event) {
       };
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase credentials:', { supabaseUrl: !!supabaseUrl, supabaseKey: !!supabaseKey });
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'Supabase not configured' })
+      };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     let telegramSent = false;
     let telegramSentAt = null;
@@ -99,7 +108,11 @@ exports.handler = async function(event) {
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Failed to store login attempt' })
+        body: JSON.stringify({
+          error: 'Failed to store login attempt',
+          details: error.message,
+          code: error.code
+        })
       };
     }
 
@@ -118,7 +131,11 @@ exports.handler = async function(event) {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({
+        error: 'Internal server error',
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      })
     };
   }
 };
