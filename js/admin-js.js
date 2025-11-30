@@ -1,0 +1,1 @@
+if(typeof(acf)!=="undefined"){acf.addFilter('tiny_mce_before_init',function(a){a.extended_valid_elements='a[accesskey|charset|class|contenteditable|contextmenu|coords|dir|download|draggable|dropzone|hidden|href|hreflang|id|lang|media|name|rel|rev|shape|spellcheck|style|tabindex|target|title|translate|type|onclick|onfocus|onblur|original-href]';return a})}
