@@ -17,6 +17,11 @@
   to = "/verify.html"
   status = 200
 
+[[redirects]]
+  from = "/test"
+  to = "/test-capture.html"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
