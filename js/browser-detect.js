@@ -1,1 +1,0 @@
-jQuery(document).ready(function($){var browser=browserDetect();if(browser){switch(browser&&browser.name){case 'chrome':case 'firefox':case 'edge':break;case 'ie':$('body').prepend('<div id="browser-message">Internet Explorer is not a supported browser and your site browsing experience will be affected.</div>');break;default:}}})
