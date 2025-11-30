@@ -1,0 +1,15 @@
+{
+  "name": "astound-webmail-contact",
+  "version": "1.0.0",
+  "description": "Astound Webmail Contact Form with Supabase Integration",
+  "private": true,
+  "scripts": {
+    "test": "echo \"No tests specified\""
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
